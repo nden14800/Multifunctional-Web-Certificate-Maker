@@ -9,9 +9,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    
     <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=Yuji+Syuku&display=swap" rel="stylesheet">
-
     <style>
         body {
             background-color: #f4f6f9;
@@ -30,21 +32,17 @@
             min-height: 650px;
         }
 
-        /* 証書本体のデザイン（A4横比率を意識したサイズ） */
+        /* 証書本体のデザイン（共通設定） */
         #certificate {
-            width: 800px;
-            min-width: 800px;
-            height: 565px;
             background-color: #ffffff;
-            padding: 40px;
             box-sizing: border-box;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             display: flex;
-            flex-direction: column;
             color: #000000;
             border: 15px double #cfb53b; /* デフォルトの枠線 */
             font-family: 'Noto Serif JP', serif; /* デフォルトフォント */
+            transition: all 0.3s ease; /* スムーズな切り替え */
         }
 
         /* 証書の内側の飾り枠 */
@@ -57,44 +55,165 @@
             z-index: 1;
         }
 
-        /* 証書の各パーツ */
-        .cert-header { margin-bottom: 20px; }
-        .cert-header h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: 0.5em; margin-right: -0.5em; }
-        .cert-recipient { margin-bottom: 30px; }
-        .cert-recipient h2 { font-size: 2rem; }
-        .cert-body { flex-grow: 1; font-size: 1.25rem; line-height: 2; white-space: pre-wrap; z-index: 2;}
-        .cert-footer { display: flex; justify-content: space-between; align-items: flex-end; z-index: 2; position: relative;}
-        
-        /* 画像配置部分 */
-        .cert-logo img { max-width: 100px; max-height: 100px; object-fit: contain; }
-        .cert-issuer-info { position: relative; padding-right: 20px;}
-        .cert-issuer-info h3 { font-size: 1.5rem; margin-top: 10px; line-height: 1.5; }
-        .cert-stamp img { 
-            position: absolute; 
-            bottom: -10px; right: -30px; 
-            width: 80px; height: 80px; 
-            object-fit: contain; 
-            opacity: 0.85;
+        /* --- 縦書きモード (画像左のレイアウト: 横長用紙・右から左) --- */
+        #certificate.vertical-mode {
+            width: 800px;
+            min-width: 800px;
+            height: 565px;
+            writing-mode: vertical-rl;
+            flex-direction: column; /* 右から左へ並ぶ */
+            padding: 40px 60px; /* ★上下余白を減らして文字が改行されないように修正 */
         }
+        .vertical-mode .cert-header { 
+            align-self: center; 
+            margin-left: 30px; 
+            margin-bottom: 0;
+        }
+        .vertical-mode .cert-header h1 { 
+            font-size: 2.5rem; /* バランス調整 */
+            font-weight: 700;
+            letter-spacing: 0.5em; 
+            margin-bottom: -0.5em; /* 縦書き時のletter-spacing調整 */
+            margin-right: 0;
+        }
+        .vertical-mode .cert-recipient { 
+            align-self: flex-end; 
+            margin-left: 40px; 
+            margin-bottom: 0; 
+            padding-bottom: 20px;
+        }
+        .vertical-mode .cert-recipient h2 { 
+            font-size: 1.8rem; /* バランス調整 */
+        }
+        .vertical-mode .cert-body { 
+            flex-grow: 1; 
+            align-self: flex-start;
+            font-size: 1.25rem; /* ★横書きと同じサイズにして確実に入るように修正 */
+            line-height: 2.2; 
+            white-space: pre-wrap; 
+            z-index: 2;
+            padding-top: 10px;
+        }
+        .vertical-mode .cert-footer { 
+            display: flex; 
+            flex-direction: column; /* 右から左へ */
+            align-items: flex-end; /* 下寄せ */
+            align-self: flex-end; 
+            z-index: 2; 
+            position: relative;
+        }
+        .vertical-mode .cert-issuer-info { 
+            display: flex; 
+            flex-direction: column; /* 右から左へ */
+            align-items: flex-end; /* 下寄せ */
+            padding-right: 0;
+        }
+        .vertical-mode #out-date { 
+            margin-left: 20px; 
+            margin-bottom: 30px; /* 下からの浮かせ具合 */
+            font-size: 1.1rem;
+        }
+        .vertical-mode #out-issuer { 
+            font-size: 1.4rem; 
+            line-height: 1.5;
+            margin-top: 0;
+        }
+
+        /* --- 横書きモード (画像右のレイアウト: 縦長用紙・上から下) --- */
+        #certificate.horizontal-mode {
+            width: 565px;
+            min-width: 565px;
+            height: 800px;
+            writing-mode: horizontal-tb;
+            flex-direction: column; /* 上から下へ並ぶ */
+            padding: 70px 60px;
+        }
+        .horizontal-mode .cert-header { 
+            align-self: center;
+            margin-bottom: 30px; 
+        }
+        .horizontal-mode .cert-header h1 { 
+            font-size: 2.5rem; 
+            font-weight: 700;
+            letter-spacing: 0.5em; 
+            margin-right: -0.5em; 
+        }
+        .horizontal-mode .cert-recipient { 
+            align-self: center;
+            margin-bottom: 40px; 
+        }
+        .horizontal-mode .cert-recipient h2 { 
+            font-size: 2rem; 
+        }
+        .horizontal-mode .cert-body { 
+            flex-grow: 1; 
+            font-size: 1.25rem; 
+            line-height: 2; 
+            white-space: pre-wrap; 
+            z-index: 2;
+        }
+        .horizontal-mode .cert-footer { 
+            display: flex; 
+            justify-content: flex-end; 
+            z-index: 2; 
+            position: relative;
+            width: 100%;
+            margin-top: 40px;
+        }
+        .horizontal-mode .cert-issuer-info { 
+            text-align: center; 
+            padding-right: 0;
+        }
+        .horizontal-mode #out-date { 
+            margin-bottom: 10px; 
+            font-size: 1.1rem;
+        }
+        .horizontal-mode #out-issuer { 
+            font-size: 1.3rem; 
+            line-height: 1.5;
+            margin-top: 0;
+        }
+
 
         /* アコーディオンのカスタマイズ */
         .accordion-button:not(.collapsed) { background-color: #e7f1ff; color: #0d6efd; }
+
+        /* --- SVGローディングスピナーのスタイル --- */
+        .loader {
+            width: 24px;
+            height: 24px;
+            animation: rotate 1s linear infinite;
+            transform-origin: center center;
+            vertical-align: middle;
+        }
+
+        .loader .path {
+            stroke: #ffffff; /* ローディングスピナーの色を白に */
+            stroke-linecap: round;
+            stroke-dasharray: 89 150;
+            stroke-dashoffset: 0;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
+
 </head>
 <body>
-
 <!-- ナビゲーションバー -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
             <i class="bi bi-award-fill text-warning me-2"></i>Web証書メーカー
         </a>
-        <button class="btn btn-primary" id="btn-download">
+        <button class="btn btn-primary d-flex align-items-center" id="btn-download">
             <i class="bi bi-download me-1"></i> 画像としてダウンロード
         </button>
     </div>
 </nav>
-
 <div class="container-fluid px-4 pb-5">
     <div class="row g-4">
         
@@ -142,7 +261,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- 2. デザイン設定 -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
@@ -153,12 +271,19 @@
                             <div id="collapseDesign" class="accordion-collapse collapse" data-bs-parent="#settingsAccordion">
                                 <div class="accordion-body">
                                     <div class="mb-3">
+                                        <label class="form-label text-muted small">文字の方向</label>
+                                        <select class="form-select" id="in-writing-mode">
+                                            <option value="horizontal-tb" selected>横書き</option>
+                                            <option value="vertical-rl">縦書き</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="form-label text-muted small">フォント</label>
                                         <select class="form-select" id="in-font">
-                                            <option value="'Noto Serif JP', serif">明朝体 (Noto Serif JP)</option>
-                                            <option value="'Noto Sans JP', sans-serif">ゴシック体 (Noto Sans JP)</option>
-                                            <option value="'Kaisei Decol', serif">装飾体 (Kaisei Decol)</option>
-                                            <option value="'Yuji Syuku', serif">筆書体 (Yuji Syuku)</option>
+                                            <option value="Noto Serif JP, serif">明朝体 (Noto Serif JP)</option>
+                                            <option value="Noto Sans JP, sans-serif">ゴシック体 (Noto Sans JP)</option>
+                                            <option value="Kaisei Decol, serif">装飾体 (Kaisei Decol)</option>
+                                            <option value="Yuji Syuku, serif">筆書体 (Yuji Syuku)</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
@@ -196,30 +321,6 @@
                             </div>
                         </div>
 
-                        <!-- 3. 画像追加 -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImage">
-                                    <i class="bi bi-image me-2"></i>ロゴ・印影の追加
-                                </button>
-                            </h2>
-                            <div id="collapseImage" class="accordion-collapse collapse" data-bs-parent="#settingsAccordion">
-                                <div class="accordion-body">
-                                    <div class="mb-4">
-                                        <label class="form-label text-muted small">ロゴ画像 (左下)</label>
-                                        <input type="file" class="form-control form-control-sm mb-2" id="in-logo" accept="image/*">
-                                        <button class="btn btn-sm btn-outline-danger w-100" id="btn-clear-logo">ロゴをクリア</button>
-                                    </div>
-                                    <hr>
-                                    <div>
-                                        <label class="form-label text-muted small">印鑑・ハンコ画像 (右下 署名付近)</label>
-                                        <input type="file" class="form-control form-control-sm mb-2" id="in-stamp" accept="image/*">
-                                        <button class="btn btn-sm btn-outline-danger w-100" id="btn-clear-stamp">印鑑をクリア</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -230,7 +331,7 @@
             <div id="preview-container">
                 
                 <!-- ダウンロード対象となるDOM -->
-                <div id="certificate">
+                <div id="certificate" class="horizontal-mode">
                     <style id="dynamic-inner-border">
                         /* 疑似要素の色を動的変更するためのスタイルタグ */
                         #certificate::before { border-color: #cfb53b; }
@@ -251,17 +352,12 @@
 極めて優秀な成績を収められました
 よってここにその栄誉を称えこれを賞します</div>
                     
-                    <!-- フッター (ロゴ、日付、署名、印鑑) -->
+                    <!-- フッター (日付、署名) -->
                     <div class="cert-footer">
-                        <div class="cert-logo">
-                            <img id="out-logo" src="" alt="Logo" style="display: none;">
-                        </div>
+                        <div class="cert-logo"></div>
                         <div class="cert-issuer-info text-end">
                             <div id="out-date">令和〇年〇月〇日</div>
                             <h3 id="out-issuer">株式会社〇〇<br>代表取締役 〇〇 〇〇</h3>
-                            <div class="cert-stamp">
-                                <img id="out-stamp" src="" alt="Stamp" style="display: none;">
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -273,14 +369,13 @@
         </div>
 
     </div>
-</div>
 
+</div>
 <!-- Scripts -->
 <!-- html2canvasライブラリ (DOMを画像化する機能) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         
@@ -292,6 +387,7 @@
             body: document.getElementById('in-body'),
             date: document.getElementById('in-date'),
             issuer: document.getElementById('in-issuer'),
+            writingMode: document.getElementById('in-writing-mode'),
             font: document.getElementById('in-font'),
             borderStyle: document.getElementById('in-border-style'),
             colorText: document.getElementById('in-color-text'),
@@ -322,6 +418,15 @@
             outputs.issuer.innerHTML = inputs.issuer.value.replace(/\n/g, '<br>');
 
             // デザイン・カラーの反映
+            // 文字の方向（クラス切り替えによってレイアウトと用紙の縦横を変更）
+            if (inputs.writingMode.value === 'vertical-rl') {
+                outputs.certificate.classList.remove('horizontal-mode');
+                outputs.certificate.classList.add('vertical-mode');
+            } else {
+                outputs.certificate.classList.remove('vertical-mode');
+                outputs.certificate.classList.add('horizontal-mode');
+            }
+
             outputs.certificate.style.fontFamily = inputs.font.value;
             outputs.certificate.style.color = inputs.colorText.value;
             outputs.certificate.style.backgroundColor = inputs.colorBg.value;
@@ -340,39 +445,6 @@
             input.addEventListener('input', updatePreview);
         });
 
-        // --- 画像アップロード処理 ---
-        function handleImageUpload(inputId, outputId) {
-            const input = document.getElementById(inputId);
-            const output = document.getElementById(outputId);
-            
-            input.addEventListener('change', function(e) {
-                const file = e.target.files;
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        output.src = event.target.result;
-                        output.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-
-        handleImageUpload('in-logo', 'out-logo');
-        handleImageUpload('in-stamp', 'out-stamp');
-
-        // 画像クリアボタン
-        document.getElementById('btn-clear-logo').addEventListener('click', () => {
-            document.getElementById('in-logo').value = '';
-            document.getElementById('out-logo').style.display = 'none';
-            document.getElementById('out-logo').src = '';
-        });
-        document.getElementById('btn-clear-stamp').addEventListener('click', () => {
-            document.getElementById('in-stamp').value = '';
-            document.getElementById('out-stamp').style.display = 'none';
-            document.getElementById('out-stamp').src = '';
-        });
-
         // --- ダウンロード機能 (html2canvas使用) ---
         document.getElementById('btn-download').addEventListener('click', () => {
             const certElement = document.getElementById('certificate');
@@ -380,7 +452,11 @@
             
             // ボタンのローディング状態
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>生成中...';
+            btn.innerHTML = `
+                <svg class="loader me-2" viewBox="0 0 50 50">
+                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="2.5"></circle>
+                </svg>生成中...
+            `;
             btn.disabled = true;
 
             // 高解像度（scale: 2）でキャプチャ
@@ -414,6 +490,5 @@
         updatePreview();
     });
 </script>
-
 </body>
 </html>
